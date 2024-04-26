@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import api from "./api/api";
 import "./App.css";
+import api from "./api/api";
 import AddPost from "./components/AddPost.jsx";
 import EditPost from "./components/EditPost.jsx";
 import Posts from "./components/Posts";
+// import initialPosts from "./data/db.js";
 
 export default function App() {
   const [posts, setPosts] = useState([]);
@@ -18,45 +19,30 @@ export default function App() {
         id: id.toString(),
         ...newPost,
       };
+
       const response = await api.post("/posts", finalPost);
+
       setPosts([...posts, response.data]);
     } catch (err) {
-      if (err.response) {
-        //error came from server
-        setError(
-          `Error from server: status: ${err.response.status} - ${err.response.data}`
-        );
-      } else {
-        // network error. sis not reach to server.
-        setError(err.message);
-      }
+      setError(err.message);
     }
   };
 
   const handleDeletePost = async (postId) => {
     if (confirm("Are you sure you want to delete the post?")) {
       try {
-        api.delete(`/posts/${postId}`);
+        await api.delete(`/posts/${postId}`);
         const newPosts = posts.filter((post) => post.id !== postId);
         setPosts(newPosts);
       } catch (err) {
-        if (err.response) {
-          //error came from server
-          setError(
-            `Error from server: status: ${err.response.status} - ${err.response.data}`
-          );
-        } else {
-          // network error. sis not reach to server.
-          setError(err.message);
-        }
+        setError(err.message);
       }
     } else {
-      console("You chose not to delete the post!");
+      console.log("You chose not to delete the post!");
     }
   };
 
   const handleEditPost = async (updatedPost) => {
-    console.log(updatedPost);
     try {
       const response = await api.patch(`/posts/${updatedPost.id}`, updatedPost);
 
@@ -66,15 +52,7 @@ export default function App() {
 
       setPosts(updatedPosts);
     } catch (err) {
-      if (err.response) {
-        //error came from server
-        setError(
-          `Error from server: status: ${err.response.status} - ${err.response.data}`
-        );
-      } else {
-        // network error. sis not reach to server.
-        setError(err.message);
-      }
+      setError(err.message);
     }
   };
 
@@ -87,17 +65,10 @@ export default function App() {
           setPosts(response.data);
         }
       } catch (err) {
-        if (err.response) {
-          //error came from server
-          setError(
-            `Error from server: status: ${err.response.status} - ${err.response.data}`
-          );
-        } else {
-          // network error. sis not reach to server.
-          setError(err.message);
-        }
+        setError(err.message);
       }
     };
+
     fetchPosts();
   }, []);
 
@@ -121,10 +92,11 @@ export default function App() {
           ) : (
             <EditPost post={post} onEditPost={handleEditPost} />
           )}
+
           {error && (
             <>
               <hr />
-              <div className="error">{error.response.data}</div>
+              <div className="error">{error}</div>
             </>
           )}
         </div>
