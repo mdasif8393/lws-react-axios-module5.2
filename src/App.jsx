@@ -1,5 +1,5 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
+import api from "./api/api";
 import "./App.css";
 import AddPost from "./components/AddPost.jsx";
 import EditPost from "./components/EditPost.jsx";
@@ -18,10 +18,7 @@ export default function App() {
         id: id.toString(),
         ...newPost,
       };
-      const response = await axios.post(
-        "http://localhost:8000/posts",
-        finalPost
-      );
+      const response = await api.post("/posts", finalPost);
       setPosts([...posts, response.data]);
     } catch (err) {
       if (err.response) {
@@ -39,7 +36,7 @@ export default function App() {
   const handleDeletePost = async (postId) => {
     if (confirm("Are you sure you want to delete the post?")) {
       try {
-        axios.delete(`http://localhost:8000/posts/${postId}`);
+        api.delete(`/posts/${postId}`);
         const newPosts = posts.filter((post) => post.id !== postId);
         setPosts(newPosts);
       } catch (err) {
@@ -61,10 +58,7 @@ export default function App() {
   const handleEditPost = async (updatedPost) => {
     console.log(updatedPost);
     try {
-      const response = await axios.patch(
-        `http://localhost:8000/posts/${updatedPost.id}`,
-        updatedPost
-      );
+      const response = await api.patch(`/posts/${updatedPost.id}`, updatedPost);
 
       const updatedPosts = posts.map((post) =>
         post.id === response.data.id ? response.data : post
@@ -87,7 +81,7 @@ export default function App() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/posts");
+        const response = await api.get("/posts");
 
         if (response && response.data) {
           setPosts(response.data);
