@@ -1,16 +1,18 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import "./App.css";
 import AddPost from "./components/AddPost.jsx";
 import EditPost from "./components/EditPost.jsx";
 import Posts from "./components/Posts";
-import initialPosts from "./data/db.js";
 
 export default function App() {
-  const [posts, setPosts] = useState(initialPosts);
+  const [posts, setPosts] = useState([]);
   const [post, setPost] = useState(null); // post I am editing
+  const [error, setError] = useState(null);
+  console.log(error);
 
   const handleAddPost = (newPost) => {
-    const id = posts.length ? posts[posts.length - 1].id + 1 : 1;
+    const id = posts.length ? Number(posts[posts.length - 1].id) + 1 : 1;
 
     setPosts([
       ...posts,
@@ -38,6 +40,29 @@ export default function App() {
     setPosts(updatedPosts);
   };
 
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/posts");
+
+        if (response && response.data) {
+          setPosts(response.data);
+        }
+      } catch (err) {
+        if (err.response) {
+          //error came from server
+          setError(
+            `Error from server: status: ${err.response.status} - ${err.response.data}`
+          );
+        } else {
+          // network error. sis not reach to server.
+          setError(err.message);
+        }
+      }
+    };
+    fetchPosts();
+  }, []);
+
   return (
     <div>
       <div>
@@ -57,6 +82,12 @@ export default function App() {
             <AddPost onAddPost={handleAddPost} />
           ) : (
             <EditPost post={post} onEditPost={handleEditPost} />
+          )}
+          {error && (
+            <>
+              <hr />
+              <div className="error">{error.response.data}</div>
+            </>
           )}
         </div>
       </div>
