@@ -15,7 +15,7 @@ export default function App() {
       const id = posts.length ? Number(posts[posts.length - 1].id) + 1 : 1;
 
       const finalPost = {
-        id,
+        id: id.toString(),
         ...newPost,
       };
       const response = await axios.post(
@@ -36,21 +36,52 @@ export default function App() {
     }
   };
 
-  const handleDeletePost = (postId) => {
+  const handleDeletePost = async (postId) => {
     if (confirm("Are you sure you want to delete the post?")) {
-      const newPosts = posts.filter((post) => post.id !== postId);
-      setPosts(newPosts);
+      try {
+        axios.delete(`http://localhost:8000/posts/${postId}`);
+        const newPosts = posts.filter((post) => post.id !== postId);
+        setPosts(newPosts);
+      } catch (err) {
+        if (err.response) {
+          //error came from server
+          setError(
+            `Error from server: status: ${err.response.status} - ${err.response.data}`
+          );
+        } else {
+          // network error. sis not reach to server.
+          setError(err.message);
+        }
+      }
     } else {
       console("You chose not to delete the post!");
     }
   };
 
-  const handleEditPost = (updatedPost) => {
-    const updatedPosts = posts.map((post) =>
-      post.id === updatedPost.id ? updatedPost : post
-    );
+  const handleEditPost = async (updatedPost) => {
+    console.log(updatedPost);
+    try {
+      const response = await axios.patch(
+        `http://localhost:8000/posts/${updatedPost.id}`,
+        updatedPost
+      );
 
-    setPosts(updatedPosts);
+      const updatedPosts = posts.map((post) =>
+        post.id === response.data.id ? response.data : post
+      );
+
+      setPosts(updatedPosts);
+    } catch (err) {
+      if (err.response) {
+        //error came from server
+        setError(
+          `Error from server: status: ${err.response.status} - ${err.response.data}`
+        );
+      } else {
+        // network error. sis not reach to server.
+        setError(err.message);
+      }
+    }
   };
 
   useEffect(() => {
