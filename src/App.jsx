@@ -9,18 +9,31 @@ export default function App() {
   const [posts, setPosts] = useState([]);
   const [post, setPost] = useState(null); // post I am editing
   const [error, setError] = useState(null);
-  console.log(error);
 
-  const handleAddPost = (newPost) => {
-    const id = posts.length ? Number(posts[posts.length - 1].id) + 1 : 1;
+  const handleAddPost = async (newPost) => {
+    try {
+      const id = posts.length ? Number(posts[posts.length - 1].id) + 1 : 1;
 
-    setPosts([
-      ...posts,
-      {
+      const finalPost = {
         id,
         ...newPost,
-      },
-    ]);
+      };
+      const response = await axios.post(
+        "http://localhost:8000/posts",
+        finalPost
+      );
+      setPosts([...posts, response.data]);
+    } catch (err) {
+      if (err.response) {
+        //error came from server
+        setError(
+          `Error from server: status: ${err.response.status} - ${err.response.data}`
+        );
+      } else {
+        // network error. sis not reach to server.
+        setError(err.message);
+      }
+    }
   };
 
   const handleDeletePost = (postId) => {
